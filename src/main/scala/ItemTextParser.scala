@@ -4,41 +4,38 @@ import util.control.Breaks._
 
 class ItemTextParser() {
 
-  def mapItemText(itemText: String): scala.collection.mutable.Map[String, String] = {
+  def mapItemText(source: String): scala.collection.mutable.Map[String, String] = {
 
+    val itemText = source.trim
     var items = scala.collection.mutable.Map[String, String]()
     var startPos = 0
-    do {
 
-      startPos = itemText.indexOf(ItemTextParser.serialiseTagOpen, startPos)
-      println(s"startPos: ${startPos}")
+    breakable {
+      while (startPos + ItemTextParser.serialiseTagOpenLen < itemText.length){
+        startPos = itemText.indexOf(ItemTextParser.serialiseTagOpen, startPos)
 
-      breakable {
         if (startPos < 0) {
             break
         }
+
+        var endPos = itemText.indexOf(ItemTextParser.serialiseTagClose, startPos)
+        if (endPos < 0)
+        {
+          println(s"Invalid format. No closing tag - Starting at post ${startPos} : ${itemText.substring(startPos, min(itemText.length - startPos, 20))}")
+        }
+
+        var valEndPos = itemText.indexOf(ItemTextParser.serialiseTagOpen, endPos)
+        if (valEndPos == -1) {
+          valEndPos = itemText.length;
+        }
+
+        var key = itemText.substring(startPos + ItemTextParser.serialiseTagOpenLen, endPos)
+        var value = itemText.substring(endPos + ItemTextParser.serialiseTagCloseLen, valEndPos)
+        items += parseItem(key, value)
+
+        startPos = valEndPos
       }
-
-      var endPos = itemText.indexOf(ItemTextParser.serialiseTagClose, startPos)
-      println(s"endPos: ${endPos}")
-      if (endPos < 0)
-      {
-        println(s"Invalid format. No closing tag - Starting at post ${startPos} : ${itemText.substring(startPos, min(itemText.length - startPos, 20))}")
-      }
-
-      var key = itemText.substring(startPos + ItemTextParser.serialiseTagOpenLen, endPos)
-
-      var valEndPos = itemText.indexOf(ItemTextParser.serialiseTagOpen, endPos)
-      println(s"valEndPos: ${valEndPos}")
-      if (valEndPos == -1)
-          valEndPos = itemText.length
-
-      var value = itemText.substring(endPos + ItemTextParser.serialiseTagCloseLen, valEndPos)
-
-      items += parseItem(key, value)
-
-      startPos = valEndPos
-    } while (startPos < itemText.length)
+    }
 
     items
   }
@@ -46,11 +43,10 @@ class ItemTextParser() {
   def parseItem(key: String, valueStr: String): (String, String) = {
     var newKey = ""
     if (key.startsWith(ItemTextParser.complexPrefix)) {
-      newKey = key.substring(ItemTextParser.complexPrefixLen, key.length - ItemTextParser.complexPrefixLen)
+      newKey = key.substring(ItemTextParser.complexPrefixLen, key.length)
     } else {
       newKey = key
     }
-    println(newKey → valueStr)
     (newKey → valueStr)
   }
 }
@@ -68,5 +64,5 @@ object ItemTextParser extends App {
 
   val itemTextParser = new ItemTextParser
 
-  println(itemTextParser.mapItemText(itemText))
+  for ((k,v) ← itemTextParser.mapItemText(itemText)) println(s"key: ${k}, value: ${v}")
 }

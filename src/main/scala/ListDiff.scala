@@ -1,0 +1,1 @@
+case class Item(concept: String);

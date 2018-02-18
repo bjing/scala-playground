@@ -1,4 +1,4 @@
-name := "SlickTest"
+name := "ScalaPlayground"
 
 version := "1.0"
 
@@ -10,6 +10,6 @@ libraryDependencies ++= List(
   "org.slf4j" % "slf4j-nop" % "1.6.4",
   "org.scalatest" %% "scalatest" % "2.2.4" % "test",
   "org.postgresql" % "postgresql" % "9.4-1205-jdbc42",
-  "net.sourceforge.jtds" % "jtds" % "1.3.1"
+  "net.sourceforge.jtds" % "jtds" % "1.3.1",
+  "org.typelevel" %% "cats-core" % "1.0.1"
 )
-

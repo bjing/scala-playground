@@ -7,10 +7,12 @@ class ItemTextParser() {
   def mapItemText(itemText: String): scala.collection.mutable.Map[String, String] = {
 
     var items = scala.collection.mutable.Map[String, String]()
-
     var startPos = 0
-    while (startPos > 0) {
+    do {
+
       startPos = itemText.indexOf(ItemTextParser.serialiseTagOpen, startPos)
+      println(s"startPos: ${startPos}")
+
       breakable {
         if (startPos < 0) {
             break
@@ -18,23 +20,25 @@ class ItemTextParser() {
       }
 
       var endPos = itemText.indexOf(ItemTextParser.serialiseTagClose, startPos)
+      println(s"endPos: ${endPos}")
       if (endPos < 0)
       {
         println(s"Invalid format. No closing tag - Starting at post ${startPos} : ${itemText.substring(startPos, min(itemText.length - startPos, 20))}")
       }
 
-      var key = itemText.substring(startPos + ItemTextParser.serialiseTagOpenLen, endPos - startPos - ItemTextParser.serialiseTagOpenLen)
+      var key = itemText.substring(startPos + ItemTextParser.serialiseTagOpenLen, endPos)
 
       var valEndPos = itemText.indexOf(ItemTextParser.serialiseTagOpen, endPos)
+      println(s"valEndPos: ${valEndPos}")
       if (valEndPos == -1)
           valEndPos = itemText.length
 
-      var value = itemText.substring(endPos + ItemTextParser.serialiseTagCloseLen, valEndPos - endPos - ItemTextParser.serialiseTagCloseLen)
+      var value = itemText.substring(endPos + ItemTextParser.serialiseTagCloseLen, valEndPos)
 
       items += parseItem(key, value)
 
       startPos = valEndPos
-    }
+    } while (startPos < itemText.length)
 
     items
   }

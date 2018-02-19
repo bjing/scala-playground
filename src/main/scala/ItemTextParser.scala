@@ -42,6 +42,56 @@ class ItemTextParser() {
     // Recursively send the the unprocessed part of itemText to mapItemText
     convertItemTextToMap(items + (key -> value), itemText.drop(valEndPos))
   }
+
+  def mapItemTextOrig(itemText: String): scala.collection.mutable.Map[String, String] = {
+    def parseItem(key: String, valueStr: String): (String, String) = {
+      var newKey = ""
+      if (key.startsWith(ItemTextParser.complexPrefix)) {
+        newKey = key.substring(ItemTextParser.complexPrefix.length, key.length)
+      } else {
+        newKey = key
+      }
+      println(newKey → valueStr)
+      (newKey → valueStr)
+    }
+
+    var items = scala.collection.mutable.Map[String, String]()
+    var startPos = 0
+
+    breakable {
+      do {
+        startPos = itemText.indexOf(ItemTextParser.serialiseTagOpen, startPos)
+        println(s"startPos: ${startPos}")
+
+        if (startPos < 0) {
+            break
+        }
+
+        var endPos = itemText.indexOf(ItemTextParser.serialiseTagClose, startPos)
+        println(s"endPos: ${endPos}")
+        if (endPos < 0)
+        {
+          // println(s"Invalid format. No closing tag - Starting at post ${startPos} : ${itemText.substring(startPos, min(itemText.length - startPos, 20))}")
+          return null
+        }
+
+        var key = itemText.substring(startPos + ItemTextParser.serialiseTagOpen.length, endPos)
+
+        var valEndPos = itemText.indexOf(ItemTextParser.serialiseTagOpen, endPos)
+        // println(s"valEndPos: ${valEndPos}")
+        if (valEndPos == -1)
+            valEndPos = itemText.length
+
+        var value = itemText.substring(endPos + ItemTextParser.serialiseTagClose.length, valEndPos)
+
+        items += parseItem(key, value)
+
+        startPos = valEndPos
+      } while (startPos < itemText.length)
+    }
+
+    items
+  }
 }
 
 object ItemTextParser extends App {
